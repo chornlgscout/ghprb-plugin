@@ -1,8 +1,13 @@
 package org.jenkinsci.plugins.ghprb.extensions.build;
 
-import java.util.logging.Level;
-import java.util.logging.Logger;
-
+import hudson.Extension;
+import hudson.model.Cause;
+import hudson.model.Job;
+import hudson.model.Queue;
+import hudson.model.Result;
+import hudson.model.Run;
+import hudson.util.RunList;
+import jenkins.model.Jenkins;
 import org.jenkinsci.plugins.ghprb.Ghprb;
 import org.jenkinsci.plugins.ghprb.GhprbCause;
 import org.jenkinsci.plugins.ghprb.extensions.GhprbBuildStep;
@@ -13,61 +18,69 @@ import org.jenkinsci.plugins.ghprb.extensions.GhprbGlobalExtension;
 import org.jenkinsci.plugins.ghprb.extensions.GhprbProjectExtension;
 import org.kohsuke.stapler.DataBoundConstructor;
 
-import hudson.Extension;
-import hudson.model.AbstractProject;
-import hudson.model.Cause;
-import hudson.model.Queue;
-import hudson.model.Result;
-import hudson.model.Run;
-import hudson.util.RunList;
-import jenkins.model.Jenkins;
+import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
-public class GhprbCancelBuildsOnUpdate extends GhprbExtension implements GhprbBuildStep, GhprbGlobalExtension, GhprbProjectExtension, GhprbGlobalDefault {
+public class GhprbCancelBuildsOnUpdate extends GhprbExtension implements
+        GhprbBuildStep, GhprbGlobalExtension, GhprbProjectExtension, GhprbGlobalDefault {
+
+    private static final Logger LOGGER = Logger.getLogger(GhprbCancelBuildsOnUpdate.class.getName());
 
     @Extension
     public static final DescriptorImpl DESCRIPTOR = new DescriptorImpl();
-    private static final Logger logger = Logger.getLogger(GhprbCancelBuildsOnUpdate.class.getName());
-    
+
     private final Boolean overrideGlobal;
 
     @DataBoundConstructor
     public GhprbCancelBuildsOnUpdate(Boolean overrideGlobal) {
-        this.overrideGlobal = overrideGlobal == null ? false : overrideGlobal;
-    }
-    
-    public Boolean getOverrideGlobal() {
-        return overrideGlobal == null ? false : overrideGlobal;
+        this.overrideGlobal = overrideGlobal == null ? Boolean.valueOf(false) : overrideGlobal;
     }
 
-    private void cancelCurrentBuilds(AbstractProject<?, ?> project,
+    public Boolean getOverrideGlobal() {
+        return overrideGlobal == null ? Boolean.valueOf(false) : overrideGlobal;
+    }
+
+    protected void cancelCurrentBuilds(Job<?, ?> project,
                                      Integer prId) {
         if (getOverrideGlobal()) {
             return;
         }
-        
-        logger.log(Level.FINER, "New build scheduled for " + project.getName() + " on PR # " + prId + ", checking for queued items to cancel.");
+
+        LOGGER.log(
+                Level.FINER,
+                "New build scheduled for " + project.getName() + " on PR # " + prId
+                        + ", checking for queued items to cancel."
+        );
+
         Queue queue = Jenkins.getInstance().getQueue();
-        for (Queue.Item item : queue.getItems(project)) {
-            GhprbCause qcause = null;
-            for (Cause cause : item.getCauses()){
-                if (cause instanceof GhprbCause) {
-                    qcause = (GhprbCause) cause;
+        Queue.Item item = project.getQueueItem();
+        if (item != null) {
+            List<Queue.Item> queueItems = queue.getItems(item.task);
+            for (Queue.Item queueItem : queueItems) {
+                GhprbCause qcause = null;
+
+                for (Cause cause : queueItem.getCauses()) {
+                    if (cause instanceof GhprbCause) {
+                        qcause = (GhprbCause) cause;
+                    }
                 }
-            }
-            if (qcause == null) {
-                continue;
-            }
-            if (qcause.getPullID() == prId) {
-                try {
-                    logger.log(Level.FINER, "Cancelling queued build of " + project.getName() + " for PR # " + qcause.getPullID() + ", checking for queued items to cancel.");
-                    queue.cancel(item);
-                } catch (Exception e) {
-                    logger.log(Level.SEVERE, "Unable to cancel queued build", e);
+                if (qcause != null && qcause.getPullID() == prId) {
+                    try {
+                        LOGGER.log(
+                                Level.FINER,
+                                "Cancelling queued build of " + project.getName() + " for PR # "
+                                        + qcause.getPullID() + ", checking for queued items to cancel."
+                        );
+                        queue.cancel(queueItem);
+                    } catch (Exception e) {
+                        LOGGER.log(Level.SEVERE, "Unable to cancel queued build", e);
+                    }
                 }
             }
         }
 
-        logger.log(Level.FINER, "New build scheduled for " + project.getName() + " on PR # " + prId);
+        LOGGER.log(Level.FINER, "New build scheduled for " + project.getName() + " on PR # " + prId);
         RunList<?> runs = project.getBuilds();
         for (Run<?, ?> run : runs) {
             if (!run.isBuilding() && !run.hasntStartedYet()) {
@@ -79,20 +92,22 @@ public class GhprbCancelBuildsOnUpdate extends GhprbExtension implements GhprbBu
             }
             if (cause.getPullID() == prId) {
                 try {
-                    logger.log(Level.FINER, "Cancelling running build #" + run.getNumber() + " of " + project.getName() + " for PR # " + cause.getPullID());
+                    LOGGER.log(
+                            Level.FINER,
+                            "Cancelling running build #" + run.getNumber() + " of "
+                                    + project.getName() + " for PR # " + cause.getPullID()
+                    );
                     run.addAction(this);
                     run.getExecutor().interrupt(Result.ABORTED);
                 } catch (Exception e) {
-                    logger.log(Level.SEVERE, "Error while trying to interrupt build!", e);
+                    LOGGER.log(Level.SEVERE, "Error while trying to interrupt build!", e);
                 }
             }
         }
 
     }
 
-    public void onScheduleBuild(AbstractProject<?, ?> project,
-                             GhprbCause cause) {
-
+    public void onScheduleBuild(Job<?, ?> project, GhprbCause cause) {
         if (project == null || cause == null) {
             return;
         }
@@ -119,13 +134,11 @@ public class GhprbCancelBuildsOnUpdate extends GhprbExtension implements GhprbBu
     }
 
     public static final class DescriptorImpl extends GhprbExtensionDescriptor
-                                             implements GhprbGlobalExtension, GhprbProjectExtension {
+            implements GhprbGlobalExtension, GhprbProjectExtension {
 
         @Override
         public String getDisplayName() {
             return "Cancel build on update";
         }
     }
-
-
 }

@@ -33,6 +33,7 @@ public class GhprbContextExtensionPoint extends ContextExtensionPoint {
                 context.checkMergeCommit,
                 null,
                 context.skipBuildPhrase,
+                context.blackListCommitAuthor,
                 context.whiteListTargetBranches,
                 context.blackListTargetBranches,
                 context.allowMembersOfWhitelistedOrgsAsAdmin,
@@ -41,7 +42,11 @@ public class GhprbContextExtensionPoint extends ContextExtensionPoint {
                 null,
                 null,
                 context.buildDescriptionTemplate,
-                context.extensionContext.extensions
+                Joiner.on("\n").join(context.blackListLabels),
+                Joiner.on("\n").join(context.whiteListLabels),
+                context.extensionContext.getExtensions(),
+                context.includedRegions,
+                context.excludedRegions
         );
     }
 

@@ -1,12 +1,8 @@
 package org.jenkinsci.plugins.ghprb.extensions.comments;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import hudson.Extension;
+import hudson.model.Run;
 import hudson.model.TaskListener;
-import hudson.model.AbstractBuild;
-
 import org.jenkinsci.plugins.ghprb.Ghprb;
 import org.jenkinsci.plugins.ghprb.extensions.GhprbCommentAppender;
 import org.jenkinsci.plugins.ghprb.extensions.GhprbExtension;
@@ -15,8 +11,11 @@ import org.jenkinsci.plugins.ghprb.extensions.GhprbGlobalExtension;
 import org.jenkinsci.plugins.ghprb.extensions.GhprbProjectExtension;
 import org.kohsuke.stapler.DataBoundConstructor;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class GhprbBuildStatus extends GhprbExtension implements GhprbCommentAppender, GhprbGlobalExtension, GhprbProjectExtension {
-    
+
     @Extension
     public static final DescriptorImpl DESCRIPTOR = new DescriptorImpl();
 
@@ -26,20 +25,20 @@ public class GhprbBuildStatus extends GhprbExtension implements GhprbCommentAppe
     public GhprbBuildStatus(List<GhprbBuildResultMessage> messages) {
         this.messages = messages;
     }
-    
+
     public List<GhprbBuildResultMessage> getMessages() {
         return messages == null ? new ArrayList<GhprbBuildResultMessage>(0) : messages;
     }
 
-    public String postBuildComment(AbstractBuild<?, ?> build, TaskListener listener) {
+    public String postBuildComment(Run<?, ?> build, TaskListener listener) {
         StringBuilder msg = new StringBuilder();
-        
+
         List<GhprbBuildResultMessage> messages = getDescriptor().getMessagesDefault(this);
-        
-        for (GhprbBuildResultMessage messager: messages) {
-            msg.append(messager.postBuildComment(build, listener));
+
+        for (GhprbBuildResultMessage message : messages) {
+            msg.append(message.postBuildComment(build, listener));
         }
-        
+
         return msg.toString();
     }
 
@@ -49,7 +48,7 @@ public class GhprbBuildStatus extends GhprbExtension implements GhprbCommentAppe
     }
 
     public static class DescriptorImpl extends GhprbExtensionDescriptor implements GhprbGlobalExtension, GhprbProjectExtension {
-        
+
         @Override
         public String getDisplayName() {
             return "Build Status Messages";

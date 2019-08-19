@@ -1,37 +1,35 @@
 package org.jenkinsci.plugins.ghprb.manager.impl.downstreambuilds;
 
+import com.cloudbees.plugins.flow.FlowRun;
+import com.cloudbees.plugins.flow.JobInvocation;
+import hudson.model.Run;
+import hudson.tasks.test.AggregatedTestResultAction;
+import org.jenkinsci.plugins.ghprb.manager.configuration.JobConfiguration;
+import org.jenkinsci.plugins.ghprb.manager.impl.GhprbBaseBuildManager;
+import org.jgrapht.DirectedGraph;
+
 import java.util.Iterator;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-
-import org.jenkinsci.plugins.ghprb.manager.impl.GhprbBaseBuildManager;
-import org.jenkinsci.plugins.ghprb.manager.configuration.JobConfiguration;
-import org.jgrapht.DirectedGraph;
-
-import com.cloudbees.plugins.flow.FlowRun;
-import com.cloudbees.plugins.flow.JobInvocation;
-
-import hudson.model.AbstractBuild;
-import hudson.tasks.test.AggregatedTestResultAction;
 
 /**
  * @author mdelapenya (Manuel de la Peña)
  */
 public class BuildFlowBuildManager extends GhprbBaseBuildManager {
 
-    private static final Logger logger = Logger.getLogger(BuildFlowBuildManager.class.getName());
+    private static final Logger LOGGER = Logger.getLogger(BuildFlowBuildManager.class.getName());
 
-    public BuildFlowBuildManager(AbstractBuild<?, ?> build) {
+    public BuildFlowBuildManager(Run<?, ?> build) {
         super(build);
     }
 
-    public BuildFlowBuildManager(AbstractBuild<?, ?> build, JobConfiguration jobConfiguration) {
+    public BuildFlowBuildManager(Run<?, ?> build, JobConfiguration jobConfiguration) {
         super(build, jobConfiguration);
     }
 
     /**
      * Calculate the build URL of a build of BuildFlow type, traversing its downstream builds graph
-     * 
+     *
      * @return the build URL of a BuildFlow build, with all its downstream builds
      */
     @SuppressWarnings("unchecked")
@@ -57,7 +55,7 @@ public class BuildFlowBuildManager extends GhprbBaseBuildManager {
 
     /**
      * Return a downstream iterator of a build of default type. This will be overriden by specific build types.
-     * 
+     *
      * @return the downstream builds as an iterator
      */
     @Override
@@ -85,7 +83,7 @@ public class BuildFlowBuildManager extends GhprbBaseBuildManager {
             JobInvocation jobInvocation = iterator.next();
 
             try {
-                AbstractBuild<?, ?> build = (AbstractBuild<?, ?>) jobInvocation.getBuild();
+                Run<?, ?> build = (Run<?, ?>) jobInvocation.getBuild();
 
                 AggregatedTestResultAction testResultAction = build.getAction(AggregatedTestResultAction.class);
 
@@ -96,7 +94,7 @@ public class BuildFlowBuildManager extends GhprbBaseBuildManager {
                     sb.append(getAggregatedTestResults(build));
                 }
             } catch (Exception e) {
-                logger.log(Level.SEVERE, "Job execution has failed", e);
+                LOGGER.log(Level.SEVERE, "Job execution has failed", e);
             }
         }
 
