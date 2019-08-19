@@ -108,7 +108,9 @@ public class GhprbPullRequest {
     private String head;
 
     private String base;
+
     private String merge;
+
     private boolean accepted = false; // Needed to see if the PR has been added to the accepted list
 
     private String lastBuildId;
@@ -589,20 +591,20 @@ public class GhprbPullRequest {
         try {
             mergeSha = pr.getMergeCommitSha();
         } catch (IOException ex) {
-            logger.log(Level.INFO, "Unable to get PR merge commit: ", ex);
+            LOGGER.log(Level.INFO, "Unable to get PR merge commit: ", ex);
         }
 
         if (StringUtils.equals(mergeSha, this.merge)) {
           return false;
         }
 
-        logger.log(Level.FINE,
+        LOGGER.log(Level.FINE,
                    "New commit. Sha: Merge[{0} => {1}]",
-                   new Object[] { this.merge, mergeSha });
+                   new Object[] {this.merge, mergeSha});
 
         setMerge(mergeSha);
-	setHead(pr.getHead().getSha());
-	setBase(pr.getBase().getSha());
+        setHead(pr.getHead().getSha());
+        setBase(pr.getBase().getSha());
 
         if (accepted) {
           shouldRun = true;
@@ -886,12 +888,12 @@ public class GhprbPullRequest {
             }
 
             if (StringUtils.isEmpty(this.merge)) {
-	       try {
-	        setMerge(pr.getMergeCommitSha());
-	      } catch (IOException ex) {
-                logger.log(Level.INFO, "Unable to get PR merge commit: ", ex);
-	      }
-	    }
+              try {
+                setMerge(pr.getMergeCommitSha());
+              } catch (IOException ex) {
+                LOGGER.log(Level.INFO, "Unable to get PR merge commit: ", ex);
+              }
+            }
         }
     }
 

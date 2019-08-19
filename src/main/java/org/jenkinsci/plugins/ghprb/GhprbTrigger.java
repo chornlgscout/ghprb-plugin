@@ -114,7 +114,9 @@ public class GhprbTrigger extends GhprbTriggerBackwardsCompatible {
     private Boolean autoCloseFailedPullRequests;
 
     private Boolean displayBuildErrorsOnDownstreamBuilds;
+
     private Boolean checkMergeCommit;
+
     private List<GhprbBranch> whiteListTargetBranches;
 
     private List<GhprbBranch> blackListTargetBranches;
@@ -803,16 +805,13 @@ public class GhprbTrigger extends GhprbTriggerBackwardsCompatible {
         private Boolean autoCloseFailedPullRequests = false;
 
         private Boolean displayBuildErrorsOnDownstreamBuilds = false;
-<<<<<<< HEAD
-        private Boolean checkMergeCommit = false;
 
-=======
+        private Boolean checkMergeCommit = false;
 
         private String blackListLabels;
 
         private String whiteListLabels;
 
->>>>>>> f4eb4bc1ee3fd53284d3889c69558c9f36d5379d
         private List<GhprbGitHubAuth> githubAuth;
 
         public GhprbGitHubAuth getGitHubAuth(String gitHubAuthId) {
@@ -926,14 +925,11 @@ public class GhprbTrigger extends GhprbTriggerBackwardsCompatible {
             unstableAs = GHCommitState.valueOf(formData.getString("unstableAs"));
             autoCloseFailedPullRequests = formData.getBoolean("autoCloseFailedPullRequests");
             displayBuildErrorsOnDownstreamBuilds = formData.getBoolean("displayBuildErrorsOnDownstreamBuilds");
-<<<<<<< HEAD
             checkMergeCommit = formData.getBoolean("checkMergeCommit");
 
-=======
             blackListLabels = formData.getString("blackListLabels");
             whiteListLabels = formData.getString("whiteListLabels");
 
->>>>>>> f4eb4bc1ee3fd53284d3889c69558c9f36d5379d
             githubAuth = req.bindJSONToList(GhprbGitHubAuth.class, formData.get("githubAuth"));
 
             extensions = new DescribableList<GhprbExtension, GhprbExtensionDescriptor>(Saveable.NOOP);

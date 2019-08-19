@@ -61,7 +61,7 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.verifyZeroInteractions;
-
+import static org.mockito.Mockito.mockingDetails;
 /**
  * Unit tests for {@link GhprbRepository}.
  */
@@ -234,7 +234,6 @@ public class GhprbRepositoryTest {
         verify(helper).getBlackListTargetBranches();
         verify(helper, times(2)).isProjectDisabled();
         verify(helper, times(1)).checkMergeCommit();
-        verify(helper).checkSkipBuild(eq(ghPullRequest));
         verify(helper).checkSkipBuildPhrase(eq(ghPullRequest));
         verify(helper, times(1)).getBlackListLabels();
         verify(helper, times(1)).getWhiteListLabels();
@@ -315,11 +314,13 @@ public class GhprbRepositoryTest {
         verify(helper, times(2)).getWhiteListTargetBranches();
         verify(helper, times(2)).getBlackListTargetBranches();
         verify(helper, times(4)).isProjectDisabled();
+        verify(helper, times(2)).checkMergeCommit();
         verify(helper, times(2)).checkSkipBuildPhrase(eq(ghPullRequest));
         verify(helper, times(2)).getBlackListLabels();
         verify(helper, times(2)).getWhiteListLabels();
         verify(helper).getIncludedRegionPatterns();
         verify(helper).getExcludedRegionPatterns();
+        System.out.println(mockingDetails(helper).getInvocations());
         verifyNoMoreInteractions(helper);
 
         verify(ghUser, times(1)).getEmail(); // Call to Github API
@@ -483,11 +484,13 @@ public class GhprbRepositoryTest {
         verify(ghPullRequest, times(5)).getNumber();
         verify(ghPullRequest, times(2)).getUpdatedAt();
         verify(ghPullRequest, times(1)).getCreatedAt();
+        verify(ghPullRequest, times(3)).getMergeCommitSha();
         verify(ghPullRequest, times(1)).getHtmlUrl();
         verify(ghPullRequest, times(3)).listCommits();
         verify(ghPullRequest, times(1)).getBody();
         verify(ghPullRequest, times(1)).getId();
         verify(ghPullRequest, times(4)).getLabels();
+        System.out.println(mockingDetails(ghPullRequest).getInvocations());
         verifyNoMoreInteractions(ghPullRequest);
 
         verify(helper, times(1)).isWhitelisted(eq(ghUser)); // Call to Github API
@@ -496,16 +499,12 @@ public class GhprbRepositoryTest {
         verify(helper, times(2)).getWhiteListTargetBranches();
         verify(helper, times(2)).getBlackListTargetBranches();
         verify(helper, times(4)).isProjectDisabled();
-<<<<<<< HEAD
         verify(helper, times(2)).checkMergeCommit();
-        verify(helper, times(2)).checkSkipBuild(eq(ghPullRequest));
-=======
         verify(helper, times(2)).checkSkipBuildPhrase(eq(ghPullRequest));
         verify(helper, times(2)).getBlackListLabels();
         verify(helper, times(2)).getWhiteListLabels();
         verify(helper).getIncludedRegionPatterns();
         verify(helper).getExcludedRegionPatterns();
->>>>>>> f4eb4bc1ee3fd53284d3889c69558c9f36d5379d
         verifyNoMoreInteractions(helper);
 
         verify(ghUser, times(1)).getEmail(); // Call to Github API
@@ -604,14 +603,10 @@ public class GhprbRepositoryTest {
         verify(helper).isRetestPhrase(eq("comment body"));
         verify(helper).isTriggerPhrase(eq("comment body"));
         verify(helper, times(4)).isProjectDisabled();
-<<<<<<< HEAD
         verify(helper, times(2)).checkMergeCommit();
-        verify(helper, times(2)).checkSkipBuild(eq(ghPullRequest));
-=======
         verify(helper, times(2)).checkSkipBuildPhrase(eq(ghPullRequest));
         verify(helper).getIncludedRegionPatterns();
         verify(helper).getExcludedRegionPatterns();
->>>>>>> f4eb4bc1ee3fd53284d3889c69558c9f36d5379d
         verifyNoMoreInteractions(helper);
 
         verify(ghUser, times(1)).getEmail(); // Call to Github API
@@ -714,12 +709,8 @@ public class GhprbRepositoryTest {
         verify(helper).isRetestPhrase(eq("test this please"));
         verify(helper).isAdmin(eq(ghUser));
         verify(helper, times(4)).isProjectDisabled();
-<<<<<<< HEAD
         verify(helper, times(2)).checkMergeCommit();
-        verify(helper, times(2)).checkSkipBuild(eq(ghPullRequest));
-=======
         verify(helper, times(2)).checkSkipBuildPhrase(eq(ghPullRequest));
->>>>>>> f4eb4bc1ee3fd53284d3889c69558c9f36d5379d
         verifyNoMoreInteractions(helper);
 
         verify(ghUser, times(1)).getEmail(); // Call to Github API

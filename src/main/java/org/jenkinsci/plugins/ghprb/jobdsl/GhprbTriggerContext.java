@@ -41,7 +41,9 @@ class GhprbTriggerContext implements Context {
     boolean allowMembersOfWhitelistedOrgsAsAdmin;
 
     boolean displayBuildErrorsOnDownstreamBuilds;
+
     boolean checkMergeCommit;
+    
     String buildDescriptionTemplate;
 
     String includedRegions;
